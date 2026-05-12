@@ -1,6 +1,6 @@
 <?php
 
-
+use App\Http\Controllers\AiEngineController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +20,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         return view('welcome');
     });
+    Route::get('/ai-settings', [AiEngineController::class, 'index']);
+    Route::post('/ai-settings', [AiEngineController::class, 'store'])->name('ai-settings.store');
     Route::get('/editUser', [UserController::class, 'editPage']);
     Route::post('/storeEditUser', [UserController::class, 'storeEditUser']);
     Route::post('/logout', [UserController::class, 'logout']);
