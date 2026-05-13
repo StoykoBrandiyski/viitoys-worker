@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AiEngineController;
 use App\Http\Controllers\ProcessingProfileController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('processing-profiles', ProcessingProfileController::class)->except(['show']);
 
+    Route::resource('products', ProductController::class);
     Route::get('/editUser', [UserController::class, 'editPage']);
     Route::post('/storeEditUser', [UserController::class, 'storeEditUser']);
     Route::post('/logout', [UserController::class, 'logout']);
