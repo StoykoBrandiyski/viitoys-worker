@@ -32,6 +32,10 @@ class AiEngineController extends Controller
             'max_timeout' => 'required|integer|min:1',
         ]);
 
+        if (isset($data['api_key'])) {
+            $data['auth_token'] = base64_encode($data['api_key']);
+        }
+
         auth()->user()->aiSettings()->create($data + ['is_active' => $request->has('is_active')]);
 
         return redirect('/')->with('success', 'Настройката е запазена.');

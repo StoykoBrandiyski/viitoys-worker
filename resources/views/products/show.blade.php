@@ -71,13 +71,18 @@
                         @foreach($product->images as $image)
                             <div class="relative group overflow-hidden rounded-xl border border-gray-200 bg-gray-50 aspect-square">
                                 @if(Storage::disk('public')->exists($image->original_path))
-                                    <img src="{{ asset('storage/' . $image->original_path) }}" alt="Product Image"
+                                    <img src="{{ asset('storage/app/public/' . $image->original_path) }}" alt="Product Image"
                                          class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center bg-gray-100">
                                         <span class="text-gray-400 text-sm">Image not found</span>
                                     </div>
                                 @endif
+                                <span>Processed</span>
+                                    @if($image->processed_path && Storage::disk('public')->exists($image->processed_path))
+                                        <img src="{{ asset('storage/app/public/' . $image->processed_path) }}" alt="Product Image"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                    @endif
                                 <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition duration-300"></div>
                             </div>
                         @endforeach
