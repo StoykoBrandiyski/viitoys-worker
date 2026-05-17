@@ -9,6 +9,7 @@ return new class extends Migration {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('processing_profile_id')->constrained()->onDelete('cascade');
             $table->string('name')->nullable()->index();
             $table->text('description')->nullable();
             $table->json('ai_raw_response')->nullable();

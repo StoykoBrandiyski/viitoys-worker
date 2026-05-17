@@ -8,7 +8,7 @@
 
         <form action="{{ route('processing-profiles.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
             @csrf
-            @include('processing-profiles._form_fields', ['profile' => new App\Models\ProcessingProfile()])
+            @include('processing-profiles._form_fields', ['profile' => new App\Models\ProcessingProfile(), 'aiEngines' => $aiEngines])
 
             <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">
                 Save Profile

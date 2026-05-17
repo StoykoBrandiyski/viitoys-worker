@@ -16,7 +16,8 @@ class ProcessingProfileController extends Controller {
     }
 
     public function create() {
-        return view('processing-profiles.form');
+        $aiEngines = Auth::user()->aiSettings;
+        return view('processing-profiles.form', compact('aiEngines'));
     }
 
     public function store(SaveProcessingProfileRequest $request) {
@@ -38,7 +39,8 @@ class ProcessingProfileController extends Controller {
         // Security check: ensure user owns this profile
         if ($processingProfile->user_id !== Auth::id()) abort(403);
 
-        return view('processing-profiles.edit', compact('processingProfile'));
+        $aiEngines = Auth::user()->aiSettings;
+        return view('processing-profiles.edit', compact('processingProfile', 'aiEngines'));
     }
 
     public function update(SaveProcessingProfileRequest $request, ProcessingProfile $processingProfile) {

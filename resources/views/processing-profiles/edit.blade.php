@@ -9,7 +9,7 @@
 
         <form action="{{ route('processing-profiles.update', $processingProfile) }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
             @csrf @method('PUT')
-            @include('processing-profiles._form_fields', ['profile' => $processingProfile])
+            @include('processing-profiles._form_fields', ['profile' => $processingProfile, 'aiEngines' => $aiEngines])
 
             <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">
                 Update Profile

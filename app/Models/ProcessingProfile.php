@@ -11,6 +11,7 @@ class ProcessingProfile extends Model {
 
     protected $fillable = [
         'user_id',
+        'ai_engine_id',
         'name',
         'width',
         'height',
@@ -26,5 +27,9 @@ class ProcessingProfile extends Model {
 
     public function user(): BelongsTo {
         return $this->belongsTo(User::class);
+    }
+
+    public function engine(): BelongsTo {
+        return $this->belongsTo(AiEngine::class, 'ai_engine_id', 'id');
     }
 }

@@ -6,6 +6,20 @@
            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
 </div>
 
+<!-- AI Engine -->
+<div>
+    <label class="block text-sm font-bold text-slate-700 mb-2">AI Engine</label>
+    <select name="ai_engine_id" required
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+        <option value="">Select an AI Engine</option>
+        @foreach($aiEngines as $engine)
+            <option value="{{ $engine->id }}" {{ old('ai_engine_id', $profile->engine_id ?? '') == $engine->id ? 'selected' : '' }}>
+                {{ $engine->model_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
 <div class="grid grid-cols-2 gap-6">
     <!-- Width -->
     <div>

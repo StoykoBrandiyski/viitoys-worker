@@ -9,6 +9,7 @@ return new class extends Migration {
         Schema::create('processing_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('ai_engine_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->integer('width')->default(500);
             $table->integer('height')->default(500);

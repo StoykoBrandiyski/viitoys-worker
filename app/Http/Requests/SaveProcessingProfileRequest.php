@@ -12,6 +12,7 @@ class SaveProcessingProfileRequest extends FormRequest {
     public function rules(): array {
         return [
             'name' => 'required|string|max:255',
+            'ai_engine_id' => 'required|integer|exists:ai_engines,id',
             'width' => 'required|integer|min:10|max:5000',
             'height' => 'required|integer|min:10|max:5000',
             'watermark_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',

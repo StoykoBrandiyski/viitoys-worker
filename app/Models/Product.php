@@ -15,6 +15,7 @@ class Product extends Model {
         'name',
         'description',
         'ai_raw_response',
+        'processing_profile_id',
         'status'
     ];
 
@@ -28,6 +29,13 @@ class Product extends Model {
      */
     public function user(): BelongsTo {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relationship to the user who owns the product.
+     */
+    public function processProfile(): BelongsTo {
+        return $this->belongsTo(ProcessingProfile::class);
     }
 
     /**
