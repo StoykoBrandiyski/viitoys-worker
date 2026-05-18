@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\DTOs\UserDTO;
+use App\Exceptions\NoSuchException;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
 
 class UserService
@@ -15,14 +17,14 @@ class UserService
     public function createUser(UserDTO $dto) {
         try {
             return $this->userRepo->save($dto->toArray());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new NoSuchException("Database error: Unable to create user.");
         }
     }
 
     public function updateUser(int $id, UserDTO $dto) {
         try {
-            return $this->userRepo.save($dto->toArray(), $id);
+            return $this->userRepo->save($dto->toArray(), $id);
         } catch (ModelNotFoundException $e) {
             throw new NoSuchException("User with ID $id not found.");
         }
@@ -30,17 +32,17 @@ class UserService
 
     public function findUser(int $id) {
         try {
-            return $this->userRepo.getById($id);
+            return $this->userRepo->getById($id);
         } catch (ModelNotFoundException $e) {
             throw new NoSuchException("User not found.");
         }
     }
 
     public function deleteUser(int $id) {
-        return $this->userRepo.delete($id);
+        return $this->userRepo->delete($id);
     }
 
     public function listUsers() {
-        return $this->userRepo.getAll();
+        return $this->userRepo->getAll();
     }
 }

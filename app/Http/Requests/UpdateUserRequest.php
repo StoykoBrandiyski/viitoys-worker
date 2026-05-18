@@ -11,10 +11,11 @@ class UpdateUserRequest extends FormRequest
 
     public function rules()
     {
-        $userId = Auth::id(); // Ensure we ignore the current user's ID for uniqueness
+        $userId = Auth::id();
         return [
+            'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $userId,
-            'password' => 'nullable|string|min:6',
+            'password' => 'nullable|string|min:6|confirmed',
         ];
     }
 }

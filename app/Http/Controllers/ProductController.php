@@ -73,7 +73,7 @@ class ProductController extends Controller {
                     'product_id'    => $product->id,
                     'original_path' => $imagePath,
                     'is_main'       => false
-                ]);;
+                ]);
             }
 
             // 3. Dispatch Job with 3 arguments: the Product model, the array of images, and the profile ID

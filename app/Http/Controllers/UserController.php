@@ -32,7 +32,7 @@ class UserController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return view('welcome');
+            return redirect('/');
         }
 
         return back()->withErrors(['username' => 'Invalid credentials']);
@@ -40,27 +40,27 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request) {
         $dto = new UserDTO(
-            username: $request->username,
-            email: $request->email,
-            password: $request->password
+             $request->username,
+             $request->email,
+             $request->password
         );
         $this->userManager->createUser($dto);
         return redirect()->route('login')->with('success', 'Account created.');
     }
 
-    public function editPage(Request $request) {
-        $user = $this->userManager->findUser($request->id);
+    public function editPage() {
+        $user = $this->userManager->findUser(Auth::id());
         return view('users.edit', compact('user'));
     }
 
     public function storeEditUser(UpdateUserRequest $request) {
         $dto = new UserDTO(
-            username: $request->username,
+            username: $request->name,
             email: $request->email,
-            is_active: $request->is_active ?? 1
+            password: $request->password
         );
-        $this->userManager->updateUser($request->id, $dto);
-        return redirect('/');
+        $this->userManager->updateUser(Auth::id(), $dto);
+        return redirect('/')->with('success', 'Profile updated successfully.');
     }
 
     public function logout(Request $request) {
