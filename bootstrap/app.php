@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\BatchProcessingService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,24 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function (Schedule $schedule) {
         $schedule->call(function () {
-            // Find products waiting in queue (pending status)
-            $waitingProducts = \App\Models\Product::where('status', 'pending')->get();
-
-            foreach ($waitingProducts as $product) {
-                // Get all images for this product
-                $images = $product->images()->get();
-
-                if ($images->isEmpty()) {
-                    // Skip products with no images
-                    continue;
-                }
-
-                // Update status to 'processing' before dispatching
-                $product->update(['status' => 'processing']);
-
-                // Dispatch job with product, images array, and profile ID
-                \App\Jobs\ProcessProductJob::dispatch($product, $images, $product->processing_profile_id);
-            }
+            // Delegate to service layer for batch processing
+            $batchProcessingService = new BatchProcessingService();
+            $batchProcessingService->processPendingProducts();
         })
             ->everyTenMinutes()
             ->withoutOverlapping()
