@@ -1,66 +1,85 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div class="max-w-4xl mx-auto">
         <!-- Header Section -->
-        <div class="bg-slate-50 border-b border-gray-100 p-6 text-center">
-            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">AI Конфигурация</h2>
-            <p class="text-slate-500 mt-2">Настройте вашия Gemini модел за генериране на съдържание</p>
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">🤖 AI Движоци</h2>
+                <p class="text-slate-500 mt-2">Управлявайте вашите Gemini AI конфигурации</p>
+            </div>
+            <a href="{{ route('ai-settings.create') }}"
+               class="px-6 py-3 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+                + Добави нов AI движок
+            </a>
         </div>
 
-        <form action="{{ route('ai-settings.store') }}" method="POST" class="p-8 space-y-6">
-        @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- API Key -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">🔑 Gemini API Key</label>
-                    <input type="password" name="api_key"
-                           class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono"
-                           placeholder="AIza..." required>
-                    <p class="mt-2 text-xs text-slate-400 italic">Ключът се съхранява криптиран в нашата база данни.</p>
-                </div>
+        @if($settings->isEmpty())
+            <!-- Empty State -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-12 text-center">
+                <div class="text-6xl mb-4">🔌</div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Няма конфигурирани AI движоци</h3>
+                <p class="text-slate-500 mb-6">Създайте вашата първа Gemini AI конфигурация</p>
+                <a href="{{ route('ai-settings.create') }}"
+                   class="inline-block px-6 py-3 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+                    Създай AI движок
+                </a>
+            </div>
+        @else
+            <!-- AI Engines List -->
+            <div class="space-y-4">
+                @foreach($settings as $engine)
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <h3 class="text-xl font-bold text-slate-800">{{ $engine->model_name }}</h3>
+                                        <div class="flex gap-2">
+                                            @if($engine->is_active)
+                                                <span class="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">✓ Активен</span>
+                                            @else
+                                                <span class="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full">Неактивен</span>
+                                            @endif
+                                        </div>
+                                    </div>
 
-                <!-- System Prompt -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">🧠 System Prompt (Инструкции)</label>
-                    <textarea name="system_prompt" rows="5"
-                              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                              required placeholder="Ти си експерт по детски играчки...">{{ old('system_prompt') }}</textarea>
-                </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-sm">
+                                        <div>
+                                            <span class="text-slate-500 font-semibold">Timeout</span>
+                                            <p class="text-slate-800 font-bold">{{ $engine->max_timeout }}s</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-500 font-semibold">API Key</span>
+                                            <p class="text-slate-800 font-mono text-xs">{{ substr($engine->api_key ?? '', 0, 15) }}...</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-500 font-semibold">System Prompt</span>
+                                            <p class="text-slate-800 truncate">{{ \Illuminate\Support\Str::limit($engine->system_prompt, 40) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                <!-- Model Selection -->
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">🤖 Модел</label>
-                    <select name="model_name"
-                            class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer">
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Бърз)</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Умен)</option>
-                    </select>
-                </div>
-
-                <!-- Timeout -->
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">⏱️ Timeout (сек)</label>
-                    <input type="number" name="max_timeout"
-                           class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                           value="30">
-                </div>
-
-                <!-- Default Toggle -->
-                <div class="md:col-span-2 flex items-center p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="is_active" value="1" class="sr-only peer" checked id="activeSwitch">
-                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        <span class="ml-3 text-sm font-medium text-blue-900">Използвай този профил по подразбиране</span>
-                    </label>
-                </div>
+                                <!-- Actions -->
+                                <div class="flex gap-2 ml-4">
+                                    <a href="{{ route('ai-settings.edit', $engine->id) }}"
+                                       class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-all text-sm">
+                                        ✏️ Редакция
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
-            <!-- Submit Button -->
-            <button type="submit"
-                    class="w-full py-4 px-6 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform active:scale-[0.98]">
-                Запази настройките
-            </button>
-        </form>
+            <!-- Add New Button -->
+            <div class="mt-8 text-center">
+                <a href="{{ route('ai-settings.create') }}"
+                   class="inline-block px-8 py-3 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+                    + Добави още един AI движок
+                </a>
+            </div>
+        @endif
     </div>
 @endsection

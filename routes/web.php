@@ -22,8 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         return view('welcome');
     });
-    Route::get('/ai-settings', [AiEngineController::class, 'index']);
-    Route::post('/ai-settings', [AiEngineController::class, 'store'])->name('ai-settings.store');
+    Route::resource('ai-settings', AiEngineController::class)->except(['show']);
 
     Route::resource('processing-profiles', ProcessingProfileController::class)->except(['show']);
 
