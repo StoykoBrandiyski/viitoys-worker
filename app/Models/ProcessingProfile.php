@@ -17,6 +17,7 @@ class ProcessingProfile extends Model {
         'height',
         'watermark_path',
         'is_watermark_enabled',
+        'image_file_format',
     ];
 
     protected $casts = [

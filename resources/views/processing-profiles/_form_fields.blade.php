@@ -51,6 +51,26 @@
            class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
 </div>
 
+<!-- Image File Format -->
+<div>
+    <label class="block text-sm font-bold text-slate-700 mb-2">Output Image Format</label>
+    <select name="image_file_format" required
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+        <option value="png" {{ old('image_file_format', $profile->image_file_format ?? 'png') == 'png' ? 'selected' : '' }}>
+            PNG - Best for transparency (Larger file)
+        </option>
+        <option value="jpg" {{ old('image_file_format', $profile->image_file_format ?? 'png') == 'jpg' ? 'selected' : '' }}>
+            JPG - Smaller files, no transparency
+        </option>
+        <option value="webp" {{ old('image_file_format', $profile->image_file_format ?? 'png') == 'webp' ? 'selected' : '' }}>
+            WebP - Modern format, smaller files
+        </option>
+        <option value="gif" {{ old('image_file_format', $profile->image_file_format ?? 'png') == 'gif' ? 'selected' : '' }}>
+            GIF - For animations
+        </option>
+    </select>
+</div>
+
 <!-- Watermark Toggle -->
 <div class="flex items-center p-4 bg-blue-50 rounded-xl border border-blue-100">
     <label class="relative inline-flex items-center cursor-pointer">

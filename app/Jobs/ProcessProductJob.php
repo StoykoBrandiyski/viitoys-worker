@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\ProcessingProfile;
 use App\Models\Product;
+use Exception;
 use GuzzleHttp\Client;
 use HosseinHezami\LaravelGemini\Facades\Gemini;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,6 +13,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Gemini\Data\Blob;
 use Gemini as GeminiType;
 use Gemini\Enums\MimeType;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -67,9 +69,11 @@ class ProcessProductJob implements ShouldQueue
             }
 
             // Step 1: Process images with Python (RemBG + Resize + Watermark)
+            $fileFormat = strtolower($profile->image_file_format ?? 'png');
+
             foreach ($this->images as $image) {
                 $inputPath = storage_path('app/public/' . $image->original_path);
-                $processePath = 'processed/' . Str::random(20) . '.png';
+                $processePath = 'processed/' . Str::random(20) . '.' . $fileFormat;
                 $outputPath = storage_path('app/public/'. $processePath );
 
                 $process = Process::run([
@@ -143,13 +147,24 @@ class ProcessProductJob implements ShouldQueue
                     ->withHttpClient($httpClient) // Tell Gemini to use our "unsecure" client
                     ->make();
 
+                // Map file format to MIME type
+                $mimeTypeMap = [
+                    'png' => MimeType::IMAGE_PNG,
+                    'jpg' => MimeType::IMAGE_JPEG,
+                    'jpeg' => MimeType::IMAGE_JPEG,
+                    'webp' => MimeType::IMAGE_WEBP,
+                    'gif' => MimeType::IMAGE_GIF,
+                ];
+
+                $mimeType = $mimeTypeMap[$fileFormat] ?? MimeType::IMAGE_PNG;
+
                 $result = $client
                     ->generativeModel(model: $engine->model_name ?? 'gemini-2.0-flash')
 
                     ->generateContent([
                         $engine->system_prompt ?? 'Analyze this product image and provide a detailed description.',
                         new Blob(
-                            MimeType::IMAGE_PNG,
+                            $mimeType,
                             base64_encode(
                                 file_get_contents($imageFullPath)
                             )
@@ -168,7 +183,6 @@ class ProcessProductJob implements ShouldQueue
                 $this->product->update([
                     'description' => $content,
                     'ai_raw_response' => json_encode([
-                        'content' => $content,
                         'model' => $engine->model_name,
                         'timestamp' => now(),
                     ]),
@@ -177,14 +191,14 @@ class ProcessProductJob implements ShouldQueue
 
                 Log::info("ProcessProductJob: Successfully processed product {$this->product->id}");
 
-            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            } catch (ConnectionException $e) {
                 Log::error("ProcessProductJob: API Connection Error", [
                     'product_id' => $this->product->id,
                     'message' => $e->getMessage(),
                 ]);
                 $this->product->update(['status' => 'failed']);
                 return;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("ProcessProductJob: Error", [
                     'product_id' => $this->product->id,
                     'exception' => get_class($e),
@@ -195,7 +209,7 @@ class ProcessProductJob implements ShouldQueue
                 $this->product->update(['status' => 'failed']);
                 return;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("ProcessProductJob: Critical Error", [
                 'product_id' => $this->product->id,
                 'exception' => get_class($e),

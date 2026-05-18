@@ -17,6 +17,7 @@ class SaveProcessingProfileRequest extends FormRequest {
             'height' => 'required|integer|min:10|max:5000',
             'watermark_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_watermark_enabled' => 'nullable|boolean',
+            'image_file_format' => 'required|in:png,jpg,jpeg,webp,gif',
         ];
     }
 }
