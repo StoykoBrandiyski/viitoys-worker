@@ -104,7 +104,19 @@
                                     <div class="space-y-2">
                                         <div class="flex justify-between items-center">
                                             <span class="text-xs font-bold uppercase tracking-wider text-indigo-500">AI Background Removed</span>
-                                            <span class="px-2 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-600 rounded-md">Processed</span>
+                                            <div class="flex gap-2">
+                                                <span class="px-2 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-600 rounded-md">Processed</span>
+                                                @if($image->processed_path && Storage::disk('public')->exists($image->processed_path))
+                                                    <a href="{{ Storage::disk('public')->url($image->processed_path) }}"
+                                                       download
+                                                       class="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition flex items-center gap-1">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                                        </svg>
+                                                        Download
+                                                    </a>
+                                                @endif
+                                            </div>
                                         </div>
                                         <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-100 aspect-square pattern-grid-fallback">
                                         @if($image->processed_path && Storage::disk('public')->exists($image->processed_path))
