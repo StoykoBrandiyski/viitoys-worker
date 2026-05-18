@@ -49,8 +49,17 @@ class ProcessProductJob implements ShouldQueue
             $profile = ProcessingProfile::with('engine')->find($this->profileId);
 
             if (!$profile) {
-                Log::error("ProcessProductJob: Profile not found. ID: {$this->profileId}");
-                $this->product->update(['status' => 'failed']);
+                $error = "Processing profile not found. ID: {$this->profileId}";
+                Log::error("ProcessProductJob: " . $error);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => 'Profile Not Found',
+                        'message' => $error,
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             }
 
@@ -58,14 +67,32 @@ class ProcessProductJob implements ShouldQueue
             $engine = $profile->engine;
 
             if (!$engine) {
-                Log::error("ProcessProductJob: AI Engine not found for profile. Profile ID: {$this->profileId}, Engine ID: {$profile->ai_engine_id}");
-                $this->product->update(['status' => 'failed']);
+                $error = "AI Engine not found for profile. Engine ID: {$profile->ai_engine_id}";
+                Log::error("ProcessProductJob: " . $error);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => 'Engine Not Found',
+                        'message' => $error,
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             }
 
             if (!$engine->is_active) {
-                Log::error("ProcessProductJob: AI Engine is not active. Engine ID: {$engine->id}");
-                $this->product->update(['status' => 'failed']);
+                $error = "AI Engine is not active. Engine ID: {$engine->id}";
+                Log::error("ProcessProductJob: " . $error);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => 'Engine Inactive',
+                        'message' => $error,
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             }
 
@@ -120,15 +147,33 @@ class ProcessProductJob implements ShouldQueue
             }
 
             if (!$firstImagePath) {
-                Log::error("ProcessProductJob: No image path found for product {$this->product->id}");
-                $this->product->update(['status' => 'failed']);
+                $error = "No image path found for product";
+                Log::error("ProcessProductJob: " . $error);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => 'No Image',
+                        'message' => $error,
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             }
 
             $imageFullPath = storage_path('app/public/' . $firstImagePath);
             if (!file_exists($imageFullPath)) {
-                Log::error("ProcessProductJob: Image file not found: {$imageFullPath}");
-                $this->product->update(['status' => 'failed']);
+                $error = "Image file not found: {$imageFullPath}";
+                Log::error("ProcessProductJob: " . $error);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => 'File Not Found',
+                        'message' => $error,
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             }
 
@@ -139,8 +184,17 @@ class ProcessProductJob implements ShouldQueue
                 // Check if API key exists
                 $apiKey = $engine->api_key;
                 if (!$apiKey) {
-                    Log::error("ProcessProductJob: AI Engine has no API key configured. Engine ID: {$engine->id}");
-                    $this->product->update(['status' => 'failed']);
+                    $error = "AI Engine has no API key configured. Engine ID: {$engine->id}";
+                    Log::error("ProcessProductJob: " . $error);
+                    $this->product->update([
+                        'status' => 'failed',
+                        'ai_raw_response' => json_encode([
+                            'error' => true,
+                            'error_type' => 'No API Key',
+                            'message' => $error,
+                            'timestamp' => now(),
+                        ])
+                    ]);
                     return;
                 }
 
@@ -182,8 +236,17 @@ class ProcessProductJob implements ShouldQueue
                 $content = $result->text();
 
                 if (!$content) {
-                    Log::error("ProcessProductJob: No content in API response for product {$this->product->id}");
-                    $this->product->update(['status' => 'failed']);
+                    $error = "No content returned from Gemini API";
+                    Log::error("ProcessProductJob: " . $error . " for product {$this->product->id}");
+                    $this->product->update([
+                        'status' => 'failed',
+                        'ai_raw_response' => json_encode([
+                            'error' => true,
+                            'error_type' => 'Empty Response',
+                            'message' => $error,
+                            'timestamp' => now(),
+                        ])
+                    ]);
                     return;
                 }
 
@@ -200,13 +263,23 @@ class ProcessProductJob implements ShouldQueue
                 Log::info("ProcessProductJob: Successfully processed product {$this->product->id}");
 
             } catch (ConnectionException $e) {
+                $errorMessage = "Connection Error: " . $e->getMessage();
                 Log::error("ProcessProductJob: API Connection Error", [
                     'product_id' => $this->product->id,
                     'message' => $e->getMessage(),
                 ]);
-                $this->product->update(['status' => 'failed']);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => 'Connection Error',
+                        'message' => $e->getMessage(),
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             } catch (Exception $e) {
+                $errorMessage = get_class($e) . ": " . $e->getMessage();
                 Log::error("ProcessProductJob: Error", [
                     'product_id' => $this->product->id,
                     'exception' => get_class($e),
@@ -214,7 +287,15 @@ class ProcessProductJob implements ShouldQueue
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
                 ]);
-                $this->product->update(['status' => 'failed']);
+                $this->product->update([
+                    'status' => 'failed',
+                    'ai_raw_response' => json_encode([
+                        'error' => true,
+                        'error_type' => class_basename($e),
+                        'message' => $e->getMessage(),
+                        'timestamp' => now(),
+                    ])
+                ]);
                 return;
             }
         } catch (Exception $e) {
@@ -223,7 +304,15 @@ class ProcessProductJob implements ShouldQueue
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
             ]);
-            $this->product->update(['status' => 'failed']);
+            $this->product->update([
+                'status' => 'failed',
+                'ai_raw_response' => json_encode([
+                    'error' => true,
+                    'error_type' => class_basename($e),
+                    'message' => $e->getMessage(),
+                    'timestamp' => now(),
+                ])
+            ]);
         }
     }
 }
