@@ -15,9 +15,10 @@ use Gemini as GeminiType;
 use Gemini\Enums\MimeType;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\Process\Process;
+
 
 class ProcessProductJob implements ShouldQueue
 {
@@ -135,6 +136,14 @@ class ProcessProductJob implements ShouldQueue
             try {
                 Log::info("ProcessProductJob: Calling Gemini API for product {$this->product->id}");
 
+                // Check if API key exists
+                $apiKey = $engine->api_key;
+                if (!$apiKey) {
+                    Log::error("ProcessProductJob: AI Engine has no API key configured. Engine ID: {$engine->id}");
+                    $this->product->update(['status' => 'failed']);
+                    return;
+                }
+
                 // Initialize Gemini client with API key
                 $httpClient = new Client([
                     'timeout'         => $engine->max_timeout ?? 30,
@@ -143,8 +152,8 @@ class ProcessProductJob implements ShouldQueue
                 ]);
 
                 $client = GeminiType::factory()
-                    ->withApiKey(base64_decode($engine->auth_token))
-                    ->withHttpClient($httpClient) // Tell Gemini to use our "unsecure" client
+                    ->withApiKey($apiKey)
+                    ->withHttpClient($httpClient)
                     ->make();
 
                 // Map file format to MIME type
@@ -152,8 +161,7 @@ class ProcessProductJob implements ShouldQueue
                     'png' => MimeType::IMAGE_PNG,
                     'jpg' => MimeType::IMAGE_JPEG,
                     'jpeg' => MimeType::IMAGE_JPEG,
-                    'webp' => MimeType::IMAGE_WEBP,
-                    'gif' => MimeType::IMAGE_GIF,
+                    'webp' => MimeType::IMAGE_WEBP
                 ];
 
                 $mimeType = $mimeTypeMap[$fileFormat] ?? MimeType::IMAGE_PNG;
