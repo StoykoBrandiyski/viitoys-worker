@@ -19,10 +19,26 @@ class User extends Authenticatable {
     ];
 
     /**
-     * @return HasMany
+     * User has many AI Engines
      */
     public function aiSettings(): HasMany
     {
         return $this->hasMany(AiEngine::class);
+    }
+
+    /**
+     * User has many Products
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * User has many Processing Profiles
+     */
+    public function processingProfiles(): HasMany
+    {
+        return $this->hasMany(ProcessingProfile::class);
     }
 }
