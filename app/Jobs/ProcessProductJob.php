@@ -74,7 +74,7 @@ class ProcessProductJob implements ShouldQueue
 
                 $process = Process::run([
                     base_path('python_env/bin/python3'),
-                    storage_path('app/python/remove_bg.py'),
+                    storage_path('remove_bg.py'),
                     $inputPath,
                     $outputPath,
                     $profile->width,
@@ -83,7 +83,24 @@ class ProcessProductJob implements ShouldQueue
                 ]);
 
                 if (!$process->successful()) {
-                    $this->product->update(['status' => 'failed']);
+                    // 1. Grab the error output from Python (stderr)
+                    $errorDetails = $process->errorOutput();
+
+                    // Fallback in case stderr is empty but stdout has the error info
+                    if (empty($errorDetails)) {
+                        $errorDetails = $process->output();
+                    }
+
+                    // 2. Log it locally to storage/logs/laravel.log for the developer
+                    Log::error("Python script failed for Product ID: {$this->product->id}. Exit Code: {$process->exitCode()}", [
+                        'error' => $errorDetails
+                    ]);
+
+                    // 3. Update the product status and save the error message for the UI
+                    $this->product->update([
+                        'status' => 'failed'
+                    ]);
+
                     return;
                 }
 

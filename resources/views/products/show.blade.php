@@ -64,32 +64,72 @@
             @endif
 
             <!-- Product Images -->
-            <div>
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Product Images ({{ $product->images->count() }})</h3>
+            <!-- Product Images -->
+            <div class="space-y-8">
+                <h3 class="text-xl font-bold text-gray-800 border-b pb-3">
+                    Product Media Gallery ({{ $product->images->count() }})
+                </h3>
+
                 @if($product->images->count() > 0)
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        @foreach($product->images as $image)
-                            <div class="relative group overflow-hidden rounded-xl border border-gray-200 bg-gray-50 aspect-square">
-                                @if(Storage::disk('public')->exists($image->original_path))
-                                    <img src="{{ asset('storage/app/public/' . $image->original_path) }}" alt="Product Image"
-                                         class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
-                                        <span class="text-gray-400 text-sm">Image not found</span>
+                    <div class="space-y-6">
+                        @foreach($product->images as $index => $image)
+                            <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                                <div class="text-sm font-semibold text-gray-500 mb-3">
+                                    Image #{{ $index + 1 }}
+                                </div>
+
+                                <!-- Side-by-Side Comparison Grid -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                                    <!-- 1. Original Image Column -->
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Original Copy</span>
+                                            <span class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md">Source</span>
+                                        </div>
+                                        <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50 aspect-square">
+                                            @if($image->original_path && Storage::disk('public')->exists($image->original_path))
+                                                <img src="{{ Storage::disk('public')->url($image->original_path) }}" alt="Original Product Image"
+                                                     class="w-full h-full object-cover hover:scale-102 transition duration-300">
+                                            @else
+                                                <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                                                    <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    <span class="text-xs">Original file missing</span>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
-                                @endif
-                                <span>Processed</span>
-                                    @if($image->processed_path && Storage::disk('public')->exists($image->processed_path))
-                                        <img src="{{ asset('storage/app/public/' . $image->processed_path) }}" alt="Product Image"
-                                             class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                    @endif
-                                <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition duration-300"></div>
+
+                                    <!-- 2. Processed Image Column -->
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-500">AI Background Removed</span>
+                                            <span class="px-2 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-600 rounded-md">Processed</span>
+                                        </div>
+                                        <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-100 aspect-square pattern-grid-fallback">
+                                        @if($image->processed_path && Storage::disk('public')->exists($image->processed_path))
+                                            <!-- Transparent background layout trick so you can see the background removal quality -->
+                                                <div class="absolute inset-0 bg-[linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)] bg-[size:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0] opacity-30"></div>
+
+                                                <img src="{{ Storage::disk('public')->url($image->processed_path) }}" alt="Processed Product Image"
+                                                     class="relative w-full h-full object-cover hover:scale-102 transition duration-300 z-10">
+                                            @else
+                                                <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                                                    <svg class="w-8 h-8 mb-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                                    <span class="text-xs">Processing or pending...</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                </div>
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center py-8 bg-gray-50 rounded-xl border border-gray-200">
-                        <p class="text-gray-500">No images uploaded yet</p>
+                    <div class="text-center py-12 bg-gray-50 rounded-2xl border border-gray-200">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="text-gray-500 font-medium">No images uploaded yet</p>
                     </div>
                 @endif
             </div>
